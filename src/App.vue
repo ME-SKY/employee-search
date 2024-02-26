@@ -3,14 +3,8 @@ import store from './store'
 import { onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 
-// import st
-// import HelloWorld from './components/HelloWorld.vue';
-import SidebarSearch from './components/SidebarSearch.vue';
-import EmployeeInfo from './components/EmployeeInfo.vue';
 import EmployeeSearch from './components/EmployeeSearch.vue'
 import Header from './components/Header.vue';
-
-// const store = useStore();
 
 onMounted(() => {
   console.log('mounted');
@@ -21,22 +15,31 @@ onMounted(() => {
 
 <template>
   <Header />
-
-  <EmployeeSearch />  
-  <SidebarSearch />
-  <EmployeeInfo />
+  <EmployeeSearch />
 </template>
 
-<style lang="scss"> // removed 'scoped' specially!!!
-body {
-  #app {
-    width: 1%;
-    display: flex;
-    flex-flow: row wrap;
+<style lang="scss"> // removed 'scoped' specially!!! TODO: make it isolated again
+ body {
+   #app {
+     min-height: inherit;
+     flex: 1 0 100%;
+     width: 100%;
+     display: flex;
+     flex-flow: column;
+     padding: 150px 8% 80px 8%;
+     gap: 26px
+   }
 
-    >* {
-      flex: 1 0 100%
-    }
-  }
-}
+   .delimiter-vertical {
+     width: 1px;
+     margin: 0 10px;
+     background: lightgray;
+   }
+
+   .m-0 {
+     margin: 0;
+   }
+
+  //  h
+ }
 </style>

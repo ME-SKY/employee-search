@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { computed } from 'vue';
 import store from '../store';
 
 const selectedEmployee = computed(() => store.state.selectedEmployee);
@@ -26,7 +26,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
         </div>
     </div>
 
-    <div v-else class="empty-placeholder">
+    <div v-else class="no-employee-placholder">
         <p>Please select an employee</p>
     </div>
     <!-- <div class="simple-component">
@@ -35,4 +35,5 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
   </div> -->
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>
