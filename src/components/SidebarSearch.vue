@@ -3,6 +3,7 @@ import { ref, watch, computed, nextTick, watchEffect } from 'vue';
 import store from '../store';
 //@ts-ignore
 import PreviewCard from './pure/PreviewCard.vue';
+import VirtualList from './VirtualList.vue';
 
 const searchQuery = ref('');
 const loadingText = ref('');
@@ -13,6 +14,8 @@ const scrollbarThumb = ref(null);
 const thumbPosition = ref(0);
 const scrollableElement = ref(null);
 const loadingCounter = ref(0);
+
+const ulCalculateClientdHeight = ref(0);
 
 let loadingInterval;
 
@@ -59,15 +62,61 @@ watch(() => store.getters.paramsFromQuery, async (newParams, oldParams) => {
     }
 });
 
+function smoothScroll(targetPosition, duration) {
+    const startPosition = window.scrollY;
+    const distance = targetPosition - startPosition;
+    const startTime = performance.now();
+
+    function scrollAnimation(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const easedProgress = easeInOut(progress);
+        window.scrollTo(0, startPosition + distance * easedProgress);
+
+        if (elapsedTime < duration) {
+            requestAnimationFrame(scrollAnimation);
+        }
+    }
+
+    requestAnimationFrame(scrollAnimation);
+}
+
+function easeInOut(t) {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+
+
+const scrollImitaion = (e) => {
+    console.log('wheeeeel', e);
+
+    // Determine the direction of the scroll
+    
+
+    // Calculate the target position based on the current scroll position
+    const currentPosition = thumbPosition.value;
+    const targetPosition = currentPosition +  e.deltaY;
+
+    // Smoothly scroll to the target position
+
+
+    thumbPosition.value = targetPosition;
+
+    // smoothScroll(targetPosition, 0.2 * 1000);
+}
+
 watch(() => store.state.allEmployee, async (newEmps, oldEmps) => {
     console.log('newEmps, ', newEmps);
 
     await nextTick(() => {
 
+
+
         if (scrollableElement.value && scrollbarContainer.value && scrollbarThumb.value) {
 
-
-            console.log('scrollableElement.value.scrollHeight, ', scrollableElement.value.scrollHeight);
+            ulCalculateClientdHeight.value = (((70 + 18) * newEmps.length) - 18) + 22; //70 - preview card height, 18 - margin-bottom, -18 - remove margin of last item, +22 - add paddings
+            console.log('ulCalculateClientdHeight, ', ulCalculateClientdHeight);
+            console.log('actual scrollHeight, ', scrollableElement.value.scrollHeight);
             // console.log()
             //one Percent in pixels on scrollable element
             const onePercentInPixels = (scrollableElement.value.scrollHeight) / 100;
@@ -106,16 +155,16 @@ watch(() => store.state.allEmployee, async (newEmps, oldEmps) => {
 
             console.log('newThumbHeight', newThumbHeight);
 
-            if(newThumbHeight >= scrollbarContainer.value.clientHeight) {
+            if (newThumbHeight >= scrollbarContainer.value.clientHeight) {
                 scrollbarContainer.value.style.opacity = '0';
             } else {
                 scrollbarThumb.value.style.height = `${newThumbHeight}px`;
-                
 
-                if(scrollbarContainer.value.style.opacity === '0') {
+
+                if (scrollbarContainer.value.style.opacity === '0') {
                     scrollbarContainer.value.style.opacity = '1';
                 }
-                
+
             }
             ; // checking
             // scrollbarThumb.value.style.height = `${onePercentOnSCrollbar}px`; //checking, it should always be ~ 3.9px
@@ -128,17 +177,26 @@ watch(() => store.state.allEmployee, async (newEmps, oldEmps) => {
 const resultContainer = ref(null);
 
 const setEmployee = (employee) => {
-    store.commit('setSelectedEmployee', employee);
+
+    if (!store.state.selectedEmployee) {
+        store.commit('setSelectedEmployee', employee);
+    } else {
+        if (store.state.selectedEmployee.id === employee.id) {
+            store.commit('setSelectedEmployee', null);
+        } else {
+            store.commit('setSelectedEmployee', employee);
+        }
+    }
 }
 
-const ulScrollHeight = computed(() => {
-    return scrollableElement?.value?.scrollHeight;
-});
+// const ulScrollHeight = computed(() => {
+//     return scrollableElement?.value?.scrollHeight;
+// });
 
-watchEffect(() => console.log('ulScrollHeight', ulScrollHeight.value));
+// watchEffect(() => console.log('ulScrollHeight', ulScrollHeight.value));
 
 const showScrollPosition = (e) => {
-    console.log('ulScrollHeight, ', ulScrollHeight.value);
+    // console.log('ulScrollHeight, ', ulScrollHeight.value);
     // console.log('onscroll e, ', e)
 
     const scrollTop = e.target.scrollTop;
@@ -219,14 +277,24 @@ const showScrollPosition = (e) => {
 
 
 
-            <ul :style="{ height: ulHeight + 'px' }" @scroll="showScrollPosition" ref="scrollableElement">
+            <ul :style="{ height: ulHeight + 'px' }" @wheel="scrollImitaion"
+                ref="scrollableElement">
+                <div class="scrollable-area-mock" 
+                >
+                    <VirtualList :allItems="store.state.allEmployee" />
+                    <!-- <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id"> -->
+                    <!-- <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)" -->
+                        <!-- :active="store.state.selectedEmployee?.id === empoyee.id" /> -->
+                <!-- </li> -->
+                </div>
                 <div class="scrollbar" ref="scrollbarContainer">
                     <div class="scrollbar-thumb" ref="scrollbarThumb">
 
                     </div>
                 </div>
                 <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id">
-                    <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)" />
+                    <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)"
+                        :active="store.state.selectedEmployee?.id === empoyee.id" />
                 </li>
             </ul>
 
@@ -266,12 +334,24 @@ const showScrollPosition = (e) => {
     }
 }
 
+.scrollable-area-mock{
+    padding: 10px 22px 12px 22px;
+    opacity: 1;
+    background: rgba(76, 170, 164, 0.397);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    // min-height: 300px;
+    border: 1px solid lightblue;
+}
+
 .sidebar {
     display: flex;
     flex-flow: column;
     justify-content: left;
     gap: 24px;
-    flex: 0 0 25%;
+    width: 23%;
     padding: 26px 22px 18px 22px;
 }
 
@@ -350,7 +430,7 @@ const showScrollPosition = (e) => {
 
     ul {
         position: relative;
-        padding: 10px 22px 12px 22px; //TODO: checking, previous was padding: 10px 22px 12px 22px
+        padding: 10px 22px 12px 22px;
         width: calc(100% + 44px);
         overflow-y: scroll;
         overflow-x: hidden;

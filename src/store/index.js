@@ -27,8 +27,7 @@ const store = createStore({
                 const response = await api.getEmployees(getters.paramsFromQuery, state.abortController.signal);
 
                 if (response) {
-                    console.log('response in getEmployeeByUserNames', response);
-                    const allEmployees = response.data;
+                    const allEmployees = response.reduce((acc, rs) => [...acc, ...rs.data], []);
                     const uniqIds = new Set();
 
                     const uniqEmployeeList = allEmployees.filter(emp => {
@@ -41,7 +40,12 @@ const store = createStore({
                     });
 
                     if(getters.paramsFromQuery.length > 0){
+
+                        if(state.selectedEmployee && !uniqEmployeeList.map(emp => emp.id).includes(state.selectedEmployee.id)){
+                            commit('setSelectedEmployee', null);
+                        }
                         commit('setAllEmployee', uniqEmployeeList);
+
                     }
                 }
             } catch (error) {
@@ -88,6 +92,9 @@ const store = createStore({
             console.log('actual params from query', res);
 
             return res;
+        },
+        employeeIds(state) {
+            return state.allEmployee.length ? state.allEmployee.map(emp => emp.id) : [];
         }
     }
 });

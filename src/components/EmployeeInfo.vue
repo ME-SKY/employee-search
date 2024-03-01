@@ -8,13 +8,13 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
 </script>
 
 <template>
-    <div v-if="selectedEmployee" class="employee-info">
+    <div v-if="store.state.selectedEmployee && store.getters.employeeIds" class="employee-info">
         <img :src="imagePlaceholder" alt="employee image">
 
         <div class="details">
             <h3>{{ selectedEmployee.name }}</h3>
             <p><b>email:</b> {{ selectedEmployee.email }}</p>
-            <p>phone: {{ selectedEmployee.phone }}</p>
+            <p><b>phone:</b> {{ selectedEmployee.phone }}</p>
             <h4>bio:</h4>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -28,7 +28,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
     </div>
 
     <div v-else class="no-employee-placeholder">
-        <p>Please select an employee</p>
+        <p>Выберите сотрудника, чтобы посмотреть его профиль</p>
     </div>
     <!-- <div class="simple-component">
     <h1>{{ title }}</h1>
@@ -68,7 +68,15 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
     }
 }
 
-.details {
-    margin-left: 22px;
+// .details {
+//     margin-left: 22px;
+// }
+
+.no-employee-placeholder{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

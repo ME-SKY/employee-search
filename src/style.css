@@ -151,6 +151,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 body {
+  scrollbar-width: none;
   margin: 0;
   display: flex;
   flex-flow: row;
@@ -160,6 +161,7 @@ body {
 }
 
 * {
+  scrollbar-width: none;
   box-sizing: border-box;
 }
 

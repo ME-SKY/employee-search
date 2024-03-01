@@ -9,7 +9,7 @@ const apiClient = axios.create({
   }
 });
 
-const createUrlParams = (params) => {
+const createUrlParamsString = (params) => {
   //can be more wide than this
 
   if(params && params.length){
@@ -52,12 +52,22 @@ export default {
 
   async getEmployees(params, signal) {
     // const canFinish = await delay(2200);
-    const requestsUrlParams = createUrlParams(params);
+    const idsArray = params.filter(param => typeof param === 'number');
+    const usernamesArray = params.filter(param => typeof param === 'string');
+
+    const usernames = createUrlParamsString(usernamesArray);
+    const ids = createUrlParamsString(idsArray);
     // console.log('params, ', params);
-    // const requests = params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
+    const requests = [];
+
+    usernames.length && requests.push(apiClient.get(`/users?${usernames}`, {signal}));
+    ids.length && requests.push(apiClient.get(`/users?${ids}`, {signal}));
+    
+
+    // params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
 
     try {
-      const results = await apiClient.get(`/users?${requestsUrlParams}`, {signal});
+      const results = await Promise.all(requests);
       console.log('All requests completed:', results);
       // console.log('canFinish', canFinish);
 

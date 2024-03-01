@@ -8,6 +8,7 @@ import EmployeeSearch from './components/EmployeeSearch.vue'
 //@ts-ignore
 import Header from './components/Header.vue';
 
+
 </script>
 
 <template>
@@ -23,7 +24,7 @@ import Header from './components/Header.vue';
      width: 100%;
      display: flex;
      flex-flow: column;
-     padding: 80px 8% 80px 8%;
+     padding: 50px;
      gap: 26px
    }
 

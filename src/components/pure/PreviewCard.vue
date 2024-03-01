@@ -7,13 +7,17 @@ const props = defineProps({
     default: ''
   },
   username: String,
-  email: String
+  email: String,
+  active: {
+    type: Boolean,
+    default: false
+  }
 })
 
 </script>
 
 <template>
-  <div class="card">
+  <div class="card" :class="{ active }">
     <img :src="profileImgUrl ? profileImgUrl : imagePlaceholder" :on-error="this.src = imagePlaceholder">
     <div class="delimiter-vertical m-0"></div>
     <div class="details">
@@ -25,6 +29,7 @@ const props = defineProps({
 
 <style>
 .card {
+  overflow: hidden;
   height: 70px;
   display: flex;
   flex-flow: row nowrap;
@@ -32,6 +37,7 @@ const props = defineProps({
   border-radius: 10px;
   box-shadow: 0px 0px 10px 0px #0000001A;
   min-width: 240px;
+  border: 1px solid transparent;
 
   img {
     width: 70px;
@@ -49,6 +55,7 @@ const props = defineProps({
     width: calc(100% - 70px);
     padding: 15px;
 
+
     h3 {
       font-size: 14px;
       font-weight: 600;
@@ -62,6 +69,14 @@ const props = defineProps({
       font-weight: 400;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+  }
+
+  &.active {
+    border: 1px solid lightgray;
+
+    .details {
+      background: lightgray;
     }
   }
 }
