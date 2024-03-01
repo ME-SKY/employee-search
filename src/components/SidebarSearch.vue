@@ -1,15 +1,208 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed, nextTick, watchEffect } from 'vue';
 import store from '../store';
-
+//@ts-ignore
 import PreviewCard from './pure/PreviewCard.vue';
 
 const searchQuery = ref('');
+const loadingText = ref('');
+const loadingTextOptions = ['.загрузка', '..загрузка', '...загрузка'];
 
-watch(searchQuery, (newSearchValue) => {
-    console.log('newSearchValue, ', newSearchValue);
+const scrollbarContainer = ref(null);
+const scrollbarThumb = ref(null);
+const thumbPosition = ref(0);
+const scrollableElement = ref(null);
+const loadingCounter = ref(0);
+
+let loadingInterval;
+
+watch(() => store.state.isLoading, (loading) => {
+    clearInterval(loadingInterval);
+
+    if (loading) {
+        let counter = 0;
+
+        loadingInterval = setInterval(() => {
+            loadingText.value = loadingTextOptions[counter % loadingTextOptions.length];
+            counter++;
+        }, 600);
+    } else {
+        loadingText.value = '';
+        loadingCounter.value = 0;
+    }
+});
+
+
+const width = computed(() => {
+    return resultContainer?.value?.clientWidth + 12;
+});
+
+const ulHeight = computed(() => {
+    return resultContainer?.value?.clientHeight - 34;
+});
+
+
+watch(searchQuery, async (newSearchValue) => {
     store.commit('setSearchQuery', newSearchValue);
 });
+
+watch(() => store.getters.paramsFromQuery, async (newParams, oldParams) => {
+
+
+
+    if ((!newParams.every(param => oldParams.includes(param)) || !oldParams.every(param => newParams.includes(param))) && newParams.length > 0) {
+        await store.dispatch('getEmployeeByUserNames')
+    } else {
+        if (newParams.length === 0) {
+            store.commit('setAllEmployee', []);
+        }
+    }
+});
+
+watch(() => store.state.allEmployee, async (newEmps, oldEmps) => {
+    console.log('newEmps, ', newEmps);
+
+    await nextTick(() => {
+
+        if (scrollableElement.value && scrollbarContainer.value && scrollbarThumb.value) {
+
+
+            console.log('scrollableElement.value.scrollHeight, ', scrollableElement.value.scrollHeight);
+            // console.log()
+            //one Percent in pixels on scrollable element
+            const onePercentInPixels = (scrollableElement.value.scrollHeight) / 100;
+
+            const clientViewZone = scrollableElement.value.clientHeight / scrollableElement.value.scrollHeight;
+
+            console.log('clientViewZone, ' + clientViewZone);
+
+
+            // how much in percents we have a viewable area in scrollable element
+            const zoneOnScrollableElement = (scrollableElement.value.clientHeight) / onePercentInPixels;
+
+            console.log('scrollableElement.value.clientHeight - 22', scrollableElement.value.clientHeight)
+
+            console.log('zoneOnScrollableElement, ', zoneOnScrollableElement);
+
+            //how much 1 percents takes in pixels on scrollbarContainer
+            const onePercentOnSCrollbar = scrollbarContainer.value.clientHeight / 100;
+
+
+            console.log('onePercentOnSCrollbar, ', onePercentOnSCrollbar);
+
+            //result value = how much in pixels thumb should takes
+            const thumbShouldTakesInPx = onePercentOnSCrollbar * zoneOnScrollableElement;
+
+            // console.log("thumbShouldTakesInPx", thumbShouldTakesInPx);
+
+
+            const thumbHeightInPercents = scrollableElement.value.clientHeight / scrollableElement.value.scrollHeight;
+
+
+            const scrollbarThumbHeight = (+(scrollbarContainer.value.clientHeight * thumbHeightInPercents).toPrecision(3)) - 1;
+
+            const newThumbHeight = scrollbarContainer.value.clientHeight * clientViewZone;
+
+
+            console.log('newThumbHeight', newThumbHeight);
+
+            if(newThumbHeight >= scrollbarContainer.value.clientHeight) {
+                scrollbarContainer.value.style.opacity = '0';
+            } else {
+                scrollbarThumb.value.style.height = `${newThumbHeight}px`;
+                
+
+                if(scrollbarContainer.value.style.opacity === '0') {
+                    scrollbarContainer.value.style.opacity = '1';
+                }
+                
+            }
+            ; // checking
+            // scrollbarThumb.value.style.height = `${onePercentOnSCrollbar}px`; //checking, it should always be ~ 3.9px
+            // scrollbarThumb.value.style.height = `${thumbShouldTakesInPx}px`; // TODO: something wrong here?
+        }
+    });
+
+});
+
+const resultContainer = ref(null);
+
+const setEmployee = (employee) => {
+    store.commit('setSelectedEmployee', employee);
+}
+
+const ulScrollHeight = computed(() => {
+    return scrollableElement?.value?.scrollHeight;
+});
+
+watchEffect(() => console.log('ulScrollHeight', ulScrollHeight.value));
+
+const showScrollPosition = (e) => {
+    console.log('ulScrollHeight, ', ulScrollHeight.value);
+    // console.log('onscroll e, ', e)
+
+    const scrollTop = e.target.scrollTop;
+    const scrollHeight = e.target.scrollHeight;
+    const clientHeight = e.target.clientHeight;
+
+    const zone = clientHeight / scrollHeight; // how much percents space  thrumb should takes
+
+    const onePercentPx = scrollHeight / 100;
+
+    const percent = scrollTop / onePercentPx;
+
+    const position = (scrollTop) / scrollHeight;
+
+
+
+    // console.log('scrollTop, ', scrollTop);
+    // console.log('scrollHeight, ', scrollHeight);
+    // console.log('clientHeight, ', clientHeight);
+
+
+
+    // if(scrollbarThumb.value) {
+    // 
+    // scrollbarThumb.value.style.height = `${zone * 100}%`;
+    // }
+
+
+    if (scrollbarContainer.value && scrollbarThumb.value) {
+        const percentOnThumb = clientHeight / 100;
+
+        // const newPercent = scrollTop / scrollHeight;
+        // console.log('newPercent: ', newPercent);
+        // console.log('new top: ', percentOnThumb * newPercent)
+
+        if (scrollbarThumb.value.clientHeight !== scrollbarContainer.value.clientHeight) {
+            console.log("zone, ", zone);
+            console.log('position, ', position);
+            console.log('onePercentPx, ', onePercentPx);
+            console.log('percent, ', percent);
+
+            console.log('scrollbarContainer.value.clientHeight * percent', scrollbarContainer.value.clientHeight * percent);
+            console.log('scrollbarContainer.value.clientHeight * position', scrollbarContainer.value.clientHeight * position);
+            console.log('scrollbarContainer.value.clientHeight, ', scrollbarContainer.value.clientHeight);
+            scrollbarThumb.value.style.top = `${(scrollbarContainer.value.clientHeight / 100) * percent}px`;
+        }
+
+        // scrollbarThumb.value.style.height = `${scrollbarContainer.value.clientHeight * zone}px`;
+    }
+
+
+    // scrollHeight
+    // : 
+    // 884
+    // scrollLeft
+    // : 
+    // 0
+    // scrollTop
+    // : 
+    // 27
+    // scrollWidth
+    // : 
+    // 368
+}
 </script>
 
 <template>
@@ -19,22 +212,60 @@ watch(searchQuery, (newSearchValue) => {
             <input v-model="searchQuery" placeholder="Введите id или имя" />
         </div>
 
-        <div class="results-section">
-            <h5>Результаты</h5>
+        <div class="results-section" ref="resultContainer">
 
-            <ul v-if="store.getters.findedEmployee.length > 0">
-                <li @click="store.commit('setSelectedEmployee', result)" v-for="empoyee in store.getters.findedEmployee"
-                    :key="empoyee.id">
-                    <PreviewCard :username="empoyee.username" :email="empoyee.email"/>
+            <h5 :style="{ width: width + 'px' }">Результаты{{ store.state.allEmployee.length ?
+                `(${store.state.allEmployee.length})` : ' ' }} {{ loadingText }}</h5>
+
+
+
+            <ul :style="{ height: ulHeight + 'px' }" @scroll="showScrollPosition" ref="scrollableElement">
+                <div class="scrollbar" ref="scrollbarContainer">
+                    <div class="scrollbar-thumb" ref="scrollbarThumb">
+
+                    </div>
+                </div>
+                <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id">
+                    <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)" />
                 </li>
             </ul>
-            
-            <p v-show="!store.getters.findedEmployee.length">Ничего не найдено</p>
+
+            <!-- <p v-show="true" class="loading">Загрузка{{ loadingText }}</p> -->
+            <!-- <p v-show="!store.getters.findedEmployee.length">Ничего не найдено</p> -->
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
+.scrollbar {
+    opacity: 0;
+    // display: flex;
+    // flex-flow: column nowrap;
+    float: right;
+    position: sticky;
+    top: 0;
+    margin-right: -16px;
+    width: 8px;
+    // padding-left: 2.5px;
+    // padding-right: 2.5px;
+    min-height: 100%;
+    max-height: 100%;
+    background: #dcdcdc;
+    overflow: hidden;
+    border-radius: 4px;
+
+    .scrollbar-thumb {
+        position: relative;
+        right: 0;
+        top: 0;
+        width: 8px;
+        border-radius: 4px;
+        // flex: 0 0 20%;
+        // height: 20px;
+        background: #b0b0b0;
+    }
+}
+
 .sidebar {
     display: flex;
     flex-flow: column;
@@ -45,29 +276,88 @@ watch(searchQuery, (newSearchValue) => {
 }
 
 .search-section {
+    height: 18%;
+
     h5 {
         margin-bottom: 22px;
     }
 
     input {
-        width: 100%;
-        padding: 8px;
+        min-width: 100%;
+        // min-width: 240px;
+        height: 59px;
+        padding: 16px 24px 16px 24px;
+        border-radius: 8px;
+        border: 1.5px solid lightgray;
         box-sizing: border-box;
-        border: 1px solid #ddd;
-        border-radius: 4px;
         outline: none;
+        background: #FDFDFD;
+        font-size: 14px;
+        font-weight: 400;
+        color: #76787D;
     }
 }
 
 .results-section {
+    // defined width for container
+    position: relative;
+    // overflow-y: ;
+    // overflow-x: hidden;
+    margin: 0 -22px;
+    padding: 0 22px;
+    min-height: calc(82% - 23px);
+    // overflow-y: hidden;
+    // position: relative;
+
+    // .scroll-content {
+    //     padding-right: 6px;
+    //     overflow-y: scroll;
+    //     height: 100%;
+
+    //    &::-webkit-scrollbar {
+    //         width: 3px;
+    //     }
+
+    //     &::-webkit-scrollbar-thumb {
+    //         background-color: #888;
+    //         border-radius: 50%;
+    //     }
+
+    // }
 
     h5 {
-        margin-bottom: 16px;
+        // margin: 0 -22px;
+        // min-width: 240px;
+        background: #FDFDFD;
+        // position: fixed;
+        // padding-left: 22px;
+        // padding-bottom: 16px;
+    }
+
+    .loading {
+        position: absolute;
+        padding: 20px;
+        font-size: 24px;
+        font-weight: 600;
+        // height: 100%;
+        top: 50%;
+        left: 50%;
+        background-color: rgba(255, 255, 255, 0.697);
+        border-radius: 4px;
+        backdrop-filter: blur(4px);
+        transform: translate(-50%, -50%);
     }
 
     ul {
+        position: relative;
+        padding: 10px 22px 12px 22px; //TODO: checking, previous was padding: 10px 22px 12px 22px
+        width: calc(100% + 44px);
+        overflow-y: scroll;
+        overflow-x: hidden;
+        margin-top: 26px;
+        margin-right: -22px;
+        margin-left: -22px;
         list-style-type: none;
-        padding: 0;
 
         li {
             cursor: pointer;
@@ -77,6 +367,16 @@ watch(searchQuery, (newSearchValue) => {
                 margin-bottom: 0;
             }
         }
+    }
+
+
+}
+
+.search-section,
+.results-section {
+    h5 {
+        font-size: 16px;
+        font-weight: 600;
     }
 }
 </style>

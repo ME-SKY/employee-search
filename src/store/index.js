@@ -7,28 +7,61 @@ const store = createStore({
             selectedEmployee: null,
             allEmployee: [],
             searchString: '',
+            isLoading: false,
+            abortController: null
         }
     },
 
     actions: {
-        getAllEmployee({ commit }) {
-            api.getAllEmployee().then(response => {
-                console.log('all employees', response.data);
-                commit('setAllEmployee', response.data);
-            }).catch(error => {
-                console.error('There was an error fetching the employees:', error);
-            });
-        },
-        getAllEmployeeByName({ commit }, name) {
-            api.getEmployees(names).then(response => {
-                console.log('all employees', response.data);
-                commit('setAllEmployee', response.data);
-            }).catch(error => {
-                console.error('There was an error fetching the employees:', error);
-            });
+        async getEmployeeByUserNames({ commit, getters, state }) {
+            if (state.abortController) {
+                state.abortController.abort();
+            }
+
+            const abortController = new AbortController();
+            commit('setAbortController', abortController);
+
+            !state.isLoading && commit('setLoading', true);
+
+            try {
+                const response = await api.getEmployees(getters.paramsFromQuery, state.abortController.signal);
+
+                if (response) {
+                    console.log('response in getEmployeeByUserNames', response);
+                    const allEmployees = response.data;
+                    const uniqIds = new Set();
+
+                    const uniqEmployeeList = allEmployees.filter(emp => {
+                        if (uniqIds.has(emp.id)) {
+                            return false;
+                        } else {
+                            uniqIds.add(emp.id);
+                            return true;
+                        }
+                    });
+
+                    if(getters.paramsFromQuery.length > 0){
+                        commit('setAllEmployee', uniqEmployeeList);
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Request was aborted:', error.message);
+                } else {
+                    console.error('There was an error fetching the employees:', error);
+                }
+            } finally {
+                setTimeout(() => {
+                    commit('setAbortController', null);
+                    commit('setLoading', false);
+                }, 2200);
+            }
         }
     },
     mutations: {
+        setLoading: (state, payload) => {
+            state.isLoading = payload;
+        },
         setAllEmployee(state, payload) {
             state.allEmployee = payload;
         },
@@ -38,34 +71,23 @@ const store = createStore({
         setSelectedEmployee(state, payload) {
             console.log('selected employee set', payload);
             state.selectedEmployee = payload;
-        }
+        },
+        setAbortController(state, payload) {
+            state.abortController = payload;
+        },
     },
     getters: {
-        findedEmployee(state, getters) {
-            const uniqFilteredNames = new Set();
-            let res = [];
-            console.log('findedEmployee sting', state.searchString);
+        findedEmployee(state) {
+            return state.allEmployee ? state.allEmployee : [];
+        },
+        paramsFromQuery(state, getters) {
 
-            if (getters.paramsFromQuery.length < 1) {
-                res = state.allEmployee;
-            } else {
-                getters.paramsFromQuery.forEach(param => {
-                    getters.employeeNames.forEach(name => {
-                        if (name.includes(param)) {
-                            uniqFilteredNames.add(name);
-                        }
-                    })
-                })
+            const res = state.searchString.length > 0 ? state.searchString.split(/[,\s]+/)
+                .filter(param => param.length > 0)
+                .map(p => p.match(/\d+/g) ? +p : p) : [];
+            console.log('actual params from query', res);
 
-                res = state.allEmployee.filter(emp => uniqFilteredNames.has(emp.name));
-            }
             return res;
-        },
-        paramsFromQuery(state) {
-            return state.searchString.length > 0 ? state.searchString.split(/[,\s]+/) : [];
-        },
-        employeeNames(state) {
-            return state.allEmployee.map(emp => emp.name);
         }
     }
 });

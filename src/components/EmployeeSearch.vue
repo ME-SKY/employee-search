@@ -18,6 +18,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
 
 <style lang="scss" scoped>
 .employee-search-block {
+    height: 620px;
     display: flex;
     flex-flow: row nowrap;
     background: #FDFDFD;

@@ -9,12 +9,27 @@ const apiClient = axios.create({
   }
 });
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve(true), ms));
+const createUrlParams = (params) => {
+  //can be more wide than this
 
-async function fakeRequest() { //it return true after 1.15 seconds.
-  return await delay(DELAY_MS); // res always true
-}
+  if(params && params.length){
+    const urlParams = new URLSearchParams();
+    params.forEach(param => {
+      
+      if(typeof param === 'string'){
+        urlParams.append('username', param)
+      } else {
+        urlParams.append('id', param)
+      }
+    });
 
+    return urlParams.toString();
+  }
+
+  return '';
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(() => resolve(true), ms));
 
 export default {
 
@@ -22,19 +37,62 @@ export default {
     return apiClient.get('/users');
   },
 
-  getEmployee({name = null, userName = null}) {
-    if (name || userName) {
-      return apiClient.get('/users', { params: { name, userName } });
-    } else {
-      return getAllEmployee();
-    }
-  },
-  getEmployees(names = [], ids = [], userNames = []) {
+  getEmployee({ id, userName }, signal) { //only one id or userName should be passed here TODO: do i really need this
+    const params = new URLSearchParams();
 
-    if (names.length > 0 && ids.length > 0) {
-      return apiClient.get('/employees', { params: { name: names[1] } }); //TODO: change it from one name to several
-      //   return apiClient.get('/employees', { params: { names: names.join(','), ids: ids.join(',') } });    
+
+    if (id) {
+      params.append('id', id);
+    } else {
+      params.append('username', userName);
     }
-    // return apiClient.get('/employees', { params: { names, ids } });
+
+    return apiClient.get(`/users?${params.toString()}`, {signal});
+  },
+
+  async getEmployees(params, signal) {
+    // const canFinish = await delay(2200);
+    const requestsUrlParams = createUrlParams(params);
+    // console.log('params, ', params);
+    // const requests = params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
+
+    try {
+      const results = await apiClient.get(`/users?${requestsUrlParams}`, {signal});
+      console.log('All requests completed:', results);
+      // console.log('canFinish', canFinish);
+
+      return results;
+    } catch (error) {
+      console.log('Error:', error);
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+      } else {
+        throw error;
+      }
+    }
   }
+
+
+  // async getEmployees(params, signal) {
+  //   const canFinish = await delay(2200);
+  //   console.log('params, ', params)
+  //   const requests = params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
+
+  //   try {
+  //     const results = await Promise.all(requests);
+  //     console.log('All requests completed:', results);
+  //     console.log('canFinish', canFinish);
+
+  //     if (canFinish) {
+  //       return results;
+  //     }
+  //   } catch (error) {
+  //     console.log('Error:', error);
+  //     if (axios.isCancel(error)) {
+  //       console.log('Request canceled:', error.message);
+  //     } else {
+  //       throw error;
+  //     }
+  //   }
+  // }
 };
