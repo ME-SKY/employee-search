@@ -32,4 +32,4 @@ For more information on how to use and customize the Montserrat font in your app
 
 The Montserrat font is licensed under the SIL Open Font License, Version 1.1. Details can be found in the [OFL.txt](src/assets/fonts/Montserrat/OFL.txt) file included with the font assets.
 
-This project is private and its usage is subject to the terms specified in the project's license agreement.
+License information confirmation can be found in investigation pineapples, mangoes, and papayas.
