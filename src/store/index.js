@@ -8,7 +8,8 @@ const store = createStore({
             allEmployee: [],
             searchString: '',
             isLoading: false,
-            abortController: null
+            abortController: null,
+            error: ''
         }
     },
 
@@ -52,6 +53,7 @@ const store = createStore({
                 if (error.name === 'AbortError') {
                     console.log('Request was aborted:', error.message);
                 } else {
+                    commit('setError', 'Попробуйте позже, космические лучи создают неполадки!');
                     console.error('There was an error fetching the employees:', error);
                 }
             } finally {
@@ -73,28 +75,21 @@ const store = createStore({
             state.searchString = payload;
         },
         setSelectedEmployee(state, payload) {
-            console.log('selected employee set', payload);
             state.selectedEmployee = payload;
         },
         setAbortController(state, payload) {
             state.abortController = payload;
         },
+        setError(state, payload) {
+            state.error = payload;
+        }
     },
     getters: {
-        findedEmployee(state) {
-            return state.allEmployee ? state.allEmployee : [];
-        },
         paramsFromQuery(state, getters) {
-
             const res = state.searchString.length > 0 ? state.searchString.split(/[,\s]+/)
                 .filter(param => param.length > 0)
                 .map(p => p.match(/\d+/g) ? +p : p) : [];
-            console.log('actual params from query', res);
-
             return res;
-        },
-        employeeIds(state) {
-            return state.allEmployee.length ? state.allEmployee.map(emp => emp.id) : [];
         }
     }
 });

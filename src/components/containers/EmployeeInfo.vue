@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import store from '../store';
+import store from '@store';
 import imagePlaceholder from '@assets/images/image-placeholder.png';
 
 const selectedEmployee = computed(() => store.state.selectedEmployee);
@@ -8,7 +8,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
 </script>
 
 <template>
-    <div v-if="store.state.selectedEmployee && store.getters.employeeIds" class="employee-info">
+    <div v-if="store.state.selectedEmployee" class="employee-info">
         <img :src="imagePlaceholder" alt="employee image">
 
         <div class="details">
@@ -30,10 +30,6 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
     <div v-else class="no-employee-placeholder">
         <p>Выберите сотрудника, чтобы посмотреть его профиль</p>
     </div>
-    <!-- <div class="simple-component">
-    <h1>{{ title }}</h1>
-    <button @click="incrementCounter">Counter: {{ counter }}</button>
-  </div> -->
 </template>
 
 <style lang="scss" scoped>
@@ -50,9 +46,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
     }
 
     .details {
-        flex: 0 1 46%
-
-        h3 {
+        flex: 0 1 46% h3 {
             font-size: 16px;
             font-weight: 600;
         }
@@ -68,11 +62,7 @@ const selectedEmployee = computed(() => store.state.selectedEmployee);
     }
 }
 
-// .details {
-//     margin-left: 22px;
-// }
-
-.no-employee-placeholder{
+.no-employee-placeholder {
     width: 100%;
     height: 100%;
     display: flex;

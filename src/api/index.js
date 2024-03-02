@@ -10,8 +10,6 @@ const apiClient = axios.create({
 });
 
 const createUrlParamsString = (params) => {
-  //can be more wide than this
-
   if(params && params.length){
     const urlParams = new URLSearchParams();
     params.forEach(param => {
@@ -29,48 +27,20 @@ const createUrlParamsString = (params) => {
   return '';
 };
 
-const delay = (ms) => new Promise((resolve) => setTimeout(() => resolve(true), ms));
-
 export default {
-
-  getAllEmployee() {
-    return apiClient.get('/users');
-  },
-
-  getEmployee({ id, userName }, signal) { //only one id or userName should be passed here TODO: do i really need this
-    const params = new URLSearchParams();
-
-
-    if (id) {
-      params.append('id', id);
-    } else {
-      params.append('username', userName);
-    }
-
-    return apiClient.get(`/users?${params.toString()}`, {signal});
-  },
-
   async getEmployees(params, signal) {
-    // const canFinish = await delay(2200);
     const idsArray = params.filter(param => typeof param === 'number');
     const usernamesArray = params.filter(param => typeof param === 'string');
 
     const usernames = createUrlParamsString(usernamesArray);
     const ids = createUrlParamsString(idsArray);
-    // console.log('params, ', params);
     const requests = [];
 
     usernames.length && requests.push(apiClient.get(`/users?${usernames}`, {signal}));
     ids.length && requests.push(apiClient.get(`/users?${ids}`, {signal}));
     
-
-    // params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
-
     try {
       const results = await Promise.all(requests);
-      console.log('All requests completed:', results);
-      // console.log('canFinish', canFinish);
-
       return results;
     } catch (error) {
       console.log('Error:', error);
@@ -81,28 +51,4 @@ export default {
       }
     }
   }
-
-
-  // async getEmployees(params, signal) {
-  //   const canFinish = await delay(2200);
-  //   console.log('params, ', params)
-  //   const requests = params.map((param) => this.getEmployee(typeof param === 'number' ? { id: param } : { userName: param }, signal));
-
-  //   try {
-  //     const results = await Promise.all(requests);
-  //     console.log('All requests completed:', results);
-  //     console.log('canFinish', canFinish);
-
-  //     if (canFinish) {
-  //       return results;
-  //     }
-  //   } catch (error) {
-  //     console.log('Error:', error);
-  //     if (axios.isCancel(error)) {
-  //       console.log('Request canceled:', error.message);
-  //     } else {
-  //       throw error;
-  //     }
-  //   }
-  // }
 };

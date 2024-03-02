@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 
 const props = defineProps({
     items: Array,
@@ -45,9 +45,6 @@ const updateVisibleItems = () => {
         state.value.startOffset = startIndex * props.itemHeight;
         state.value.endOffset = (props.items.length - endIndex) * props.itemHeight;
         state.value.visibleItems = props.items.slice(startIndex, endIndex);
-        console.log('startIndex, ', startIndex);
-        console.log('endIndex, ', endIndex);
-        console.log('scroll, ', scroll);
     }
 
 };
@@ -74,10 +71,7 @@ watch(() => props.items, updateVisibleItems, { deep: true });
     </div>
 </template>
 
-
-
-
-<style scoped>
+<style lang='scss' scoped>
 .virtual-list {
     position: relative;
     padding: 10px 22px 12px 22px;
@@ -89,7 +83,6 @@ watch(() => props.items, updateVisibleItems, { deep: true });
 }
 
 .virtual-list-phantom {
-    /* background: rgba(97, 199, 197, 0.343); */
     will-change: transform;
 }
 

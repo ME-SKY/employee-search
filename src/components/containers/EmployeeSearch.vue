@@ -1,11 +1,6 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
-import store from '../store';
-import SidebarSearch from './SidebarSearch.vue';
-import EmployeeInfo from './EmployeeInfo.vue';
-
-const selectedEmployee = computed(() => store.state.selectedEmployee);
-
+import SidebarSearch from '@components/containers/SidebarSearch.vue';
+import EmployeeInfo from '@components/containers/EmployeeInfo.vue';
 </script>
 
 <template>

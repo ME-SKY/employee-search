@@ -151,7 +151,6 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 body {
-  /* scrollbar-width: none; */
   margin: 0;
   display: flex;
   flex-flow: row;
@@ -161,10 +160,27 @@ body {
 }
 
 * {
-  /* scrollbar-width: none; */
   box-sizing: border-box;
 }
 
-/* ::-webkit-scrollbar { */
-  /* scrollbar-width: none; */
-/* } */
+body {
+  #app {
+    min-height: inherit;
+    flex: 1 0 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column;
+    padding: 50px;
+    gap: 26px
+  }
+
+  .delimiter-vertical {
+    width: 1px;
+    margin: 0 22px;
+    background: lightgray;
+  }
+
+  .m-0 {
+    margin: 0;
+  }
+}

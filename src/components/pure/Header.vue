@@ -14,7 +14,7 @@ header {
     padding: 10px 10px 0 10px;
 
     .company-name {
-        font-weight: 700; //TODO: move it to root css file
+        font-weight: 700;
         font-size: 32px;
         line-height: 39px;
         letter-spacing: 0em;

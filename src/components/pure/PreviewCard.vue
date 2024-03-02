@@ -50,8 +50,6 @@ const props = defineProps({
 
   .details {
     text-overflow: ellipsis;
-
-    /* Required for text-overflow to do anything */
     white-space: normal;
     width: calc(100% - 70px);
     padding: 15px;
