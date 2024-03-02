@@ -4,7 +4,11 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 const props = defineProps({
     items: Array,
     itemHeight: Number,
-    height: Number
+    height: Number,
+    gap: {
+        type: Number,
+        default: 18
+    }
 });
 const state = ref({
     startOffset: 0,
@@ -15,7 +19,7 @@ const state = ref({
 
 const listEl = ref(null);
 
-const visibleCount = computed(() => Math.ceil(props.height / props.itemHeight));
+const visibleCount = computed(() => Math.ceil(props.height / (props.gap + props.itemHeight)));
 const totalHeight = computed(() => props.items.length * props.itemHeight);
 
 const listStyle = computed(() => ({
@@ -34,36 +38,38 @@ const contentStyle = computed(() => ({
 }));
 
 const updateVisibleItems = () => {
-    const scroll = listEl.value.scrollTop;
-    const startIndex = Math.floor(scroll / props.itemHeight);
-    const endIndex = startIndex + visibleCount.value;
-    state.value.startOffset = startIndex * props.itemHeight;
-    state.value.endOffset = (props.items.length - endIndex) * props.itemHeight;
-    state.value.visibleItems = props.items.slice(startIndex, endIndex);
+    if (listEl.value) {
+        const scroll = listEl.value.scrollTop;
+        const startIndex = Math.floor((scroll + 10) / (props.itemHeight));
+        const endIndex = startIndex + visibleCount.value;
+        state.value.startOffset = startIndex * props.itemHeight;
+        state.value.endOffset = (props.items.length - endIndex) * props.itemHeight;
+        state.value.visibleItems = props.items.slice(startIndex, endIndex);
+        console.log('startIndex, ', startIndex);
+        console.log('endIndex, ', endIndex);
+        console.log('scroll, ', scroll);
+    }
+
 };
 
 const onScroll = () => {
-    state.value.scrollTop = listEl.value.scrollTop;
+    state.value.scrollTop = listEl.value?.scrollTop;
     updateVisibleItems();
 };
 
 onMounted(() => {
-    listEl.value.addEventListener('scroll', onScroll);
     updateVisibleItems();
 });
 
-onUnmounted(() => {
-    listEl.value.removeEventListener('scroll', onScroll);
-});
-
 watch(() => props.items, updateVisibleItems, { deep: true });
+
 </script>
 
 <template>
-    <div class="virtual-list" :style="listStyle">
+    <div class="virtual-list" :style="listStyle" ref="listEl" @scroll="onScroll">
         <div class="virtual-list-phantom" :style="phantomStyle"></div>
-        <div class="virtual-list-content" :style="contentStyle">
-            <slot v-for="item in visibleItems" :item="item"></slot>
+        <div class="virtual-list-content" :style="{ ...contentStyle, width: `${(listEl?.clientWidth) - 44}px` }">
+            <slot v-for="item in state.visibleItems" :item="item" :key="item.id" />
         </div>
     </div>
 </template>
@@ -74,13 +80,21 @@ watch(() => props.items, updateVisibleItems, { deep: true });
 <style scoped>
 .virtual-list {
     position: relative;
+    padding: 10px 22px 12px 22px;
+    width: calc(100% + 44px);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    margin-right: -22px;
+    margin-left: -22px;
 }
 
 .virtual-list-phantom {
+    /* background: rgba(97, 199, 197, 0.343); */
     will-change: transform;
 }
 
 .virtual-list-content {
+    margin-top: 10px;
     will-change: transform;
 }
 </style>

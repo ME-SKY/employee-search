@@ -38,6 +38,7 @@ const props = defineProps({
   box-shadow: 0px 0px 10px 0px #0000001A;
   min-width: 240px;
   border: 1px solid transparent;
+  margin-bottom: 18px;
 
   img {
     width: 70px;
@@ -79,5 +80,9 @@ const props = defineProps({
       background: lightgray;
     }
   }
+}
+
+.card:last-child {
+  margin-bottom: 0;
 }
 </style>

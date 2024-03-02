@@ -91,11 +91,11 @@ const scrollImitaion = (e) => {
     console.log('wheeeeel', e);
 
     // Determine the direction of the scroll
-    
+
 
     // Calculate the target position based on the current scroll position
     const currentPosition = thumbPosition.value;
-    const targetPosition = currentPosition +  e.deltaY;
+    const targetPosition = currentPosition + e.deltaY;
 
     // Smoothly scroll to the target position
 
@@ -275,31 +275,37 @@ const showScrollPosition = (e) => {
             <h5 :style="{ width: width + 'px' }">Результаты{{ store.state.allEmployee.length ?
                 `(${store.state.allEmployee.length})` : ' ' }} {{ loadingText }}</h5>
 
+            <VirtualList :items="store.state.allEmployee" :itemHeight="88" :height="ulHeight">
+                <template v-slot="{ item }">
+                    <PreviewCard :username="item.username" :email="item.email" @click="() => setEmployee(item)"
+                            :active="store.state.selectedEmployee?.id === item.id" :key="item.id" />
+                </template>
+            </VirtualList>
 
+            <!-- disalbe old code: -->
+            <template v-if="false">
 
-            <ul :style="{ height: ulHeight + 'px' }" @wheel="scrollImitaion"
-                ref="scrollableElement">
-                <div class="scrollable-area-mock" 
-                >
-                    <VirtualList :allItems="store.state.allEmployee" />
-                    <!-- <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id"> -->
-                    <!-- <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)" -->
+                <ul :style="{ height: ulHeight + 'px' }" @wheel="scrollImitaion" ref="scrollableElement">
+                    <div class="scrollable-area-mock">
+                        <!-- <VirtualList :allItems="store.state.allEmployee" >
+                        
+                        </VirtualList>> -->
+                        <!-- <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id"> -->
+                        <!-- <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)" -->
                         <!-- :active="store.state.selectedEmployee?.id === empoyee.id" /> -->
-                <!-- </li> -->
-                </div>
-                <div class="scrollbar" ref="scrollbarContainer">
-                    <div class="scrollbar-thumb" ref="scrollbarThumb">
-
+                        <!-- </li> -->
                     </div>
-                </div>
-                <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id">
-                    <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)"
-                        :active="store.state.selectedEmployee?.id === empoyee.id" />
-                </li>
-            </ul>
+                    <div class="scrollbar" ref="scrollbarContainer">
+                        <div class="scrollbar-thumb" ref="scrollbarThumb">
 
-            <!-- <p v-show="true" class="loading">Загрузка{{ loadingText }}</p> -->
-            <!-- <p v-show="!store.getters.findedEmployee.length">Ничего не найдено</p> -->
+                        </div>
+                    </div>
+                    <li v-for="empoyee in store.state.allEmployee" :key="empoyee.id">
+                        <PreviewCard :username="empoyee.username" :email="empoyee.email" @click="() => setEmployee(empoyee)"
+                            :active="store.state.selectedEmployee?.id === empoyee.id" />
+                    </li>
+                </ul>
+            </template>
         </div>
     </div>
 </template>
@@ -307,15 +313,11 @@ const showScrollPosition = (e) => {
 <style lang="scss" scoped>
 .scrollbar {
     opacity: 0;
-    // display: flex;
-    // flex-flow: column nowrap;
     float: right;
     position: sticky;
     top: 0;
     margin-right: -16px;
     width: 8px;
-    // padding-left: 2.5px;
-    // padding-right: 2.5px;
     min-height: 100%;
     max-height: 100%;
     background: #dcdcdc;
@@ -328,13 +330,11 @@ const showScrollPosition = (e) => {
         top: 0;
         width: 8px;
         border-radius: 4px;
-        // flex: 0 0 20%;
-        // height: 20px;
         background: #b0b0b0;
     }
 }
 
-.scrollable-area-mock{
+.scrollable-area-mock {
     padding: 10px 22px 12px 22px;
     opacity: 1;
     background: rgba(76, 170, 164, 0.397);
@@ -379,6 +379,7 @@ const showScrollPosition = (e) => {
 }
 
 .results-section {
+    // width: fit-content;
     // defined width for container
     position: relative;
     // overflow-y: ;
@@ -406,6 +407,7 @@ const showScrollPosition = (e) => {
     // }
 
     h5 {
+        margin-bottom: 20px;
         // margin: 0 -22px;
         // min-width: 240px;
         background: #FDFDFD;
